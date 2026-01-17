@@ -47,7 +47,7 @@
 // =============================================================================
 // Set to 0 to disable GPS completely (use fixed coordinates)
 // Set to 1 to enable GPS (requires clear sky view, may take 2-3 min for first fix)
-#define GPS_ENABLED             0       // Disabled by default - set to 1 to enable
+#define GPS_ENABLED             1       // Disabled by default - set to 1 to enable
 
 #define GPS_ENABLE_GPIO         4
 #define GPS_ENABLE_LEVEL        0

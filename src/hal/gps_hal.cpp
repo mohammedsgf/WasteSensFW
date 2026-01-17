@@ -15,16 +15,15 @@ GpsHAL::GpsHAL(Drivers::SIM7000Driver& driver)
 
 bool GpsHAL::init(uint32_t timeout) {
     DEBUG_PRINTLN("[GpsHAL] Initializing GPS...");
+    DEBUG_PRINTLN("[GpsHAL] Make sure GPS antenna is connected!");
     
     if (!enable()) {
         DEBUG_PRINTLN("[GpsHAL] Failed to enable GPS");
         return false;
     }
     
-    DEBUG_PRINTLN("[GpsHAL] GPS enabled, waiting for fix...");
-    
-    // Set GPS baud rate
-    _driver.getModem().setGPSBaud(115200);
+    DEBUG_PRINTLN("[GpsHAL] GPS initialized - ready for positioning");
+    DEBUG_PRINTLN("[GpsHAL] Note: First fix may take 1-3 minutes outdoors");
     
     return true;
 }
@@ -34,21 +33,38 @@ bool GpsHAL::enable() {
     
     TinyGsm& modem = _driver.getModem();
     
-    // Enable GPS with configured GPIO and level
-    if (!modem.enableGPS(GPS_ENABLE_GPIO, GPS_ENABLE_LEVEL)) {
+    // SIM7000G specific: Power on GPS module via GPIO48
+    // This AT command is essential for SIM7000G GPS to work!
+    DEBUG_PRINTLN("[GpsHAL] Powering on GPS module (AT+CGPIO)...");
+    modem.sendAT("+CGPIO=0,48,1,1");
+    if (modem.waitResponse(10000L) != 1) {
+        DEBUG_PRINTLN("[GpsHAL] Warning: GPS power command failed");
+        // Continue anyway, might still work
+    }
+    
+    // Enable GPS via standard TinyGSM command
+    DEBUG_PRINTLN("[GpsHAL] Enabling GPS (AT+CGNSPWR)...");
+    if (!modem.enableGPS()) {
         DEBUG_PRINTLN("[GpsHAL] Failed to enable GPS");
         return false;
     }
     
     _enabled = true;
-    DEBUG_PRINTLN("[GpsHAL] GPS enabled");
+    DEBUG_PRINTLN("[GpsHAL] GPS enabled successfully");
     return true;
 }
 
 void GpsHAL::disable() {
     DEBUG_PRINTLN("[GpsHAL] Disabling GPS...");
     
-    _driver.getModem().disableGPS();
+    TinyGsm& modem = _driver.getModem();
+    
+    // SIM7000G specific: Power off GPS module via GPIO48
+    modem.sendAT("+CGPIO=0,48,1,0");
+    modem.waitResponse(10000L);
+    
+    // Disable GPS via standard TinyGSM command
+    modem.disableGPS();
     _enabled = false;
     
     DEBUG_PRINTLN("[GpsHAL] GPS disabled");
@@ -79,14 +95,17 @@ GpsLocation GpsHAL::getLocation(uint32_t timeout) {
     float lat = 0, lon = 0, speed = 0, alt = 0, accuracy = 0;
     int vsat = 0, usat = 0;
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
-    uint8_t fixMode = 0;
+    uint8_t status = 0;
     
     uint32_t startTime = millis();
+    int attempts = 0;
+    
+    DEBUG_PRINTLN("[GpsHAL] Waiting for GPS fix (blue LED will blink)...");
     
     while (millis() - startTime < timeout) {
-        if (modem.getGPS(&fixMode, &lat, &lon, &speed, &alt, &vsat, &usat, &accuracy,
+        // Use full getGPS call with all parameters (TinyGSM fork requirement)
+        if (modem.getGPS(&status, &lat, &lon, &speed, &alt, &vsat, &usat, &accuracy,
                          &year, &month, &day, &hour, &minute, &second)) {
-            
             location.valid = true;
             location.latitude = lat;
             location.longitude = lon;
@@ -99,7 +118,13 @@ GpsLocation GpsHAL::getLocation(uint32_t timeout) {
             return location;
         }
         
-        delay(1000);
+        attempts++;
+        if (attempts % 5 == 0) {
+            DEBUG_PRINTF("[GpsHAL] Still waiting for fix... (%lu sec)\n", 
+                        (millis() - startTime) / 1000);
+        }
+        
+        delay(2000);  // Match working example's 2 second delay
     }
     
     DEBUG_PRINTLN("[GpsHAL] GPS fix timeout, using default location");
