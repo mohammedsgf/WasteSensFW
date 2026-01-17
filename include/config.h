@@ -45,13 +45,18 @@
 // =============================================================================
 // GPS CONFIGURATION
 // =============================================================================
+// Set to 0 to disable GPS completely (use fixed coordinates)
+// Set to 1 to enable GPS (requires clear sky view, may take 2-3 min for first fix)
+#define GPS_ENABLED             0       // Disabled by default - set to 1 to enable
+
 #define GPS_ENABLE_GPIO         4
 #define GPS_ENABLE_LEVEL        0
-#define GPS_TIMEOUT_MS          120000  // 2 minutes timeout for GPS fix
+#define GPS_TIMEOUT_MS          30000   // 30 seconds timeout (reduced from 2 min)
 
-// Default location (used if GPS fails)
-#define DEFAULT_LATITUDE        0.0f
-#define DEFAULT_LONGITUDE       0.0f
+// Default/Fixed location (used when GPS disabled or fails)
+// Set your actual coordinates here
+#define DEFAULT_LATITUDE        24.7136f    // Example: Riyadh, Saudi Arabia
+#define DEFAULT_LONGITUDE       46.6753f
 
 // =============================================================================
 // NETWORK CONFIGURATION

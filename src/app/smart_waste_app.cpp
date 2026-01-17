@@ -112,11 +112,16 @@ bool SmartWasteApp::initNetwork() {
         return false;
     }
     
-    // Initialize GPS (after modem is connected)
+    // Initialize GPS (if enabled)
+#if GPS_ENABLED
     if (!_gpsHal.init(GPS_TIMEOUT_MS)) {
         DEBUG_PRINTLN("[App] GPS init failed - will use default location");
         // Continue - will use default coordinates
     }
+#else
+    DEBUG_PRINTLN("[App] GPS disabled in config - using fixed coordinates");
+    DEBUG_PRINTF("[App] Location: %.6f, %.6f\n", DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
+#endif
     
     // Initialize MQTT
     if (!_mqttService.init(MQTT_BROKER, MQTT_PORT, MQTT_CLIENT_ID, 
@@ -235,9 +240,10 @@ SensorReadings SmartWasteApp::readSensors() {
         DEBUG_PRINTLN("[App] WARNING: Sensor FAILED - publishing fill_level=-1 to indicate broken sensor");
     }
     
-    // Read GPS location (reduced timeout to 10s to avoid blocking)
+    // Read GPS location (if enabled)
+#if GPS_ENABLED
     DEBUG_PRINTLN("[App] Reading GPS location...");
-    HAL::GpsLocation gpsLoc = _gpsHal.getLocation(10000); // 10s timeout
+    HAL::GpsLocation gpsLoc = _gpsHal.getLocation(GPS_TIMEOUT_MS);
     readings.latitude = gpsLoc.latitude;
     readings.longitude = gpsLoc.longitude;
     readings.gpsValid = gpsLoc.valid;
@@ -245,6 +251,13 @@ SensorReadings SmartWasteApp::readSensors() {
     if (!gpsLoc.valid) {
         DEBUG_PRINTLN("[App] GPS timeout - using default coordinates");
     }
+#else
+    // GPS disabled - use fixed coordinates from config
+    DEBUG_PRINTLN("[App] GPS disabled - using fixed coordinates");
+    readings.latitude = DEFAULT_LATITUDE;
+    readings.longitude = DEFAULT_LONGITUDE;
+    readings.gpsValid = false;
+#endif
     
     // Read battery level
     DEBUG_PRINTLN("[App] Reading battery level...");
