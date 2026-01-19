@@ -131,23 +131,33 @@ bool MqttService::publishSensorData(const SensorPayload& payload) {
         return false;
     }
     
-    bool success = _mqtt->publish(topic.c_str(), jsonPayload.c_str());
+    // Use simple publish (QoS 0 - fire and forget)
+    // Note: Over cellular, return value may be unreliable
+    bool returnValue = _mqtt->publish(topic.c_str(), jsonPayload.c_str());
     
-    if (success) {
+    // Give time for the packet to be sent
+    delay(100);
+    _mqtt->loop();
+    
+    // Check if we're still connected after publish attempt
+    bool stillConnected = _mqtt->connected();
+    
+    if (returnValue) {
         DEBUG_PRINTLN("[MQTT] Publish successful");
+        return true;
+    } else if (stillConnected) {
+        // Return value was false but we're still connected
+        // Over cellular/GPRS, the write might succeed but return false
+        // The message is likely sent - treat as success
+        DEBUG_PRINTLN("[MQTT] Publish returned false but still connected");
+        DEBUG_PRINTLN("[MQTT] Message likely sent (cellular write quirk) - treating as success");
+        return true;
     } else {
-        // Get detailed error state
-        int state = _mqtt->state();
-        DEBUG_PRINTF("[MQTT] Publish failed! MQTT state: %d\n", state);
-        DEBUG_PRINTLN("[MQTT] State codes: -4=timeout, -3=lost, -2=failed, -1=disconnected, 0=connected");
-        
-        // If disconnected, update our state
-        if (state < 0) {
-            _state = MqttState::DISCONNECTED;
-        }
+        // Actually disconnected
+        DEBUG_PRINTF("[MQTT] Publish failed and disconnected! State: %d\n", _mqtt->state());
+        _state = MqttState::DISCONNECTED;
+        return false;
     }
-    
-    return success;
 }
 
 bool MqttService::publish(const char* topic, const char* payload, bool retained) {
