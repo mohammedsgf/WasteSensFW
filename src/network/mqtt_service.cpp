@@ -28,10 +28,20 @@ bool MqttService::init(const char* broker, uint16_t port, const char* clientId,
         _mqtt = new PubSubClient(_gprsManager.getClient());
     }
     
+    // Set buffer size (default 256 is too small for JSON payload)
+    _mqtt->setBufferSize(512);
+    
+    // Set keep-alive to 60 seconds
+    _mqtt->setKeepAlive(60);
+    
+    // Set socket timeout (in seconds)
+    _mqtt->setSocketTimeout(30);
+    
     _mqtt->setServer(broker, port);
     
     DEBUG_PRINTF("[MQTT] Broker: %s:%d\n", broker, port);
     DEBUG_PRINTF("[MQTT] Client ID: %s\n", clientId);
+    DEBUG_PRINTF("[MQTT] Buffer size: 512 bytes\n");
     
     return true;
 }
@@ -104,18 +114,37 @@ bool MqttService::publishSensorData(const SensorPayload& payload) {
         return false;
     }
     
+    // Call loop() to process any pending messages and maintain connection
+    _mqtt->loop();
+    
     String topic = buildTopic(payload.deviceId);
     String jsonPayload = buildJsonPayload(payload);
     
     DEBUG_PRINTF("[MQTT] Publishing to: %s\n", topic.c_str());
     DEBUG_PRINTF("[MQTT] Payload: %s\n", jsonPayload.c_str());
+    DEBUG_PRINTF("[MQTT] Payload length: %d bytes\n", jsonPayload.length());
+    
+    // Check connection state before publish
+    if (!_mqtt->connected()) {
+        DEBUG_PRINTF("[MQTT] Connection lost before publish! State: %d\n", _mqtt->state());
+        _state = MqttState::DISCONNECTED;
+        return false;
+    }
     
     bool success = _mqtt->publish(topic.c_str(), jsonPayload.c_str());
     
     if (success) {
         DEBUG_PRINTLN("[MQTT] Publish successful");
     } else {
-        DEBUG_PRINTLN("[MQTT] Publish failed");
+        // Get detailed error state
+        int state = _mqtt->state();
+        DEBUG_PRINTF("[MQTT] Publish failed! MQTT state: %d\n", state);
+        DEBUG_PRINTLN("[MQTT] State codes: -4=timeout, -3=lost, -2=failed, -1=disconnected, 0=connected");
+        
+        // If disconnected, update our state
+        if (state < 0) {
+            _state = MqttState::DISCONNECTED;
+        }
     }
     
     return success;

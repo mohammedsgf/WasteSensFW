@@ -45,7 +45,7 @@
 HardwareSerial SerialAT(1);
 
 // Device Drivers
-Drivers::US100Driver ultrasonicDriver(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN);
+Drivers::US100Driver ultrasonicDriver(US100_TRIGGER_PIN, US100_ECHO_PIN);
 Drivers::SIM7000Driver sim7000Driver(SerialAT);
 
 // Hardware Abstraction Layer

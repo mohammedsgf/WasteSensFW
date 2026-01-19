@@ -227,7 +227,7 @@ SensorReadings SmartWasteApp::readSensors() {
     
     // Read distance sensor
     DEBUG_PRINTLN("[App] Reading ultrasonic sensor...");
-    HAL::DistanceReading distReading = _sensorHal.getDistanceAvg(ULTRASONIC_NUM_SAMPLES);
+    HAL::DistanceReading distReading = _sensorHal.getDistanceAvg(US100_NUM_SAMPLES);
     
     if (distReading.valid) {
         readings.distanceCm = distReading.distanceCm;
