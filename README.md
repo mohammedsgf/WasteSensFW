@@ -17,7 +17,7 @@ ESP32-based firmware for LilyGo T-SIM7000G that monitors trash bin fill levels u
 | Component | Description |
 |-----------|-------------|
 | **Board** | LilyGo T-SIM7000G (ESP32 + SIM7000G) |
-| **Sensor** | US-100 Ultrasonic Sensor (GPIO mode) |
+| **Sensor** | HC-SR04 Ultrasonic Sensor |
 | **SIM Card** | Nano SIM with data plan |
 | **Power** | 3.7V LiPo battery or USB power |
 
@@ -29,8 +29,8 @@ ESP32-based firmware for LilyGo T-SIM7000G that monitors trash bin fill levels u
 | Modem RX | 26 | Fixed (board design) |
 | Power Key | 4 | Fixed (board design) |
 | LED | 12 | Status indicator |
-| US-100 Trigger | 32 | Configurable in `config.h` |
-| US-100 Echo | 35 | Configurable in `config.h` |
+| HC-SR04 Trigger | 32 | Configurable in `config.h` |
+| HC-SR04 Echo | 35 | Configurable in `config.h` (input-only GPIO) |
 
 ## Architecture
 

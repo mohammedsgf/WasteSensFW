@@ -1,6 +1,6 @@
 /**
  * @file us100_driver.h
- * @brief US-100 Ultrasonic Sensor Driver (GPIO Mode)
+ * @brief Ultrasonic Sensor Driver (HC-SR04 / US-100 GPIO Mode)
  */
 
 #ifndef US100_DRIVER_H
@@ -12,11 +12,13 @@
 namespace Drivers {
 
 /**
- * @brief US-100 Ultrasonic Sensor Driver
+ * @brief Ultrasonic Sensor Driver (HC-SR04 compatible)
  * 
- * Operates in GPIO trigger/echo mode (similar to HC-SR04)
- * Speed of sound: 343 m/s at 20°C
- * Distance = (Time × Speed of Sound) / 2
+ * Works with HC-SR04, US-100 (GPIO mode), and similar sensors
+ * - Trigger: 10µs HIGH pulse initiates measurement
+ * - Echo: Returns HIGH pulse, width = round-trip time
+ * - Speed of sound: 343 m/s at 20°C
+ * - Distance = (Time × 0.0343) / 2 cm
  */
 class US100Driver {
 public:

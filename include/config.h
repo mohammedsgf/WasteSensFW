@@ -28,26 +28,33 @@
 #define LED_OFF                 HIGH
 
 // =============================================================================
-// ULTRASONIC SENSOR CONFIGURATION (US-100 GPIO Mode)
+// ULTRASONIC SENSOR CONFIGURATION (HC-SR04)
 // =============================================================================
-#define US100_TRIGGER_PIN       32
-#define US100_ECHO_PIN          35  // Using input-only pin for echo
+// HC-SR04 Specifications:
+// - Operating Voltage: 5V (3.3V trigger works, but 5V recommended)
+// - Trigger: 10µs HIGH pulse
+// - Echo: Returns pulse width proportional to distance
+// - Range: 2cm - 400cm
+// - Resolution: ~3mm
+
+#define ULTRASONIC_TRIGGER_PIN  32
+#define ULTRASONIC_ECHO_PIN     35  // GPIO35 is input-only, safe for echo
 
 // Trash can dimensions (in centimeters)
 #define TRASH_CAN_HEIGHT_CM     120.0f
-#define SENSOR_MIN_DISTANCE_CM  2.0f
-#define SENSOR_MAX_DISTANCE_CM  400.0f
+#define SENSOR_MIN_DISTANCE_CM  2.0f    // HC-SR04 minimum range
+#define SENSOR_MAX_DISTANCE_CM  400.0f  // HC-SR04 maximum range
 
 // Measurement settings
-#define US100_TIMEOUT_US        30000   // 30ms timeout for echo
-#define US100_NUM_SAMPLES       5       // Number of samples for averaging
+#define ULTRASONIC_TIMEOUT_US   30000   // 30ms timeout (~5m max distance)
+#define ULTRASONIC_NUM_SAMPLES  5       // Number of samples for averaging
 
 // =============================================================================
 // GPS CONFIGURATION
 // =============================================================================
 // Set to 0 to disable GPS completely (use fixed coordinates)
 // Set to 1 to enable GPS (requires clear sky view, may take 2-3 min for first fix)
-#define GPS_ENABLED             1       // Disabled by default - set to 1 to enable
+//#define GPS_ENABLED             1       // Disabled by default - set to 1 to enable
 
 #define GPS_ENABLE_GPIO         4
 #define GPS_ENABLE_LEVEL        0
@@ -85,7 +92,7 @@
 // =============================================================================
 // TIMING CONFIGURATION
 // =============================================================================
-#define PUBLISH_INTERVAL_MS     300000  // 5 minutes
+#define PUBLISH_INTERVAL_MS     1000
 #define MQTT_RECONNECT_DELAY_MS 10000   // 10 seconds
 #define NETWORK_TIMEOUT_MS      180000  // 3 minutes
 #define MODEM_INIT_DELAY_MS     3000    // 3 seconds

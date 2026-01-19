@@ -45,12 +45,12 @@
 HardwareSerial SerialAT(1);
 
 // Device Drivers
-Drivers::US100Driver us100Driver(US100_TRIGGER_PIN, US100_ECHO_PIN);
+Drivers::US100Driver ultrasonicDriver(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN);
 Drivers::SIM7000Driver sim7000Driver(SerialAT);
 
 // Hardware Abstraction Layer
 HAL::ModemHAL modemHal(sim7000Driver);
-HAL::SensorHAL sensorHal(us100Driver);
+HAL::SensorHAL sensorHal(ultrasonicDriver);
 HAL::GpsHAL gpsHal(sim7000Driver);
 HAL::PowerHAL powerHal(BATTERY_ADC_PIN, BATTERY_VOLTAGE_DIVIDER);
 

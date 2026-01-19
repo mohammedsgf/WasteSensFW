@@ -9,7 +9,7 @@
 namespace HAL {
 
 SensorHAL::SensorHAL(Drivers::US100Driver& driver)
-    : _driver(driver), _timeoutUs(US100_TIMEOUT_US), _initialized(false) {
+    : _driver(driver), _timeoutUs(ULTRASONIC_TIMEOUT_US), _initialized(false) {
 }
 
 bool SensorHAL::init() {
